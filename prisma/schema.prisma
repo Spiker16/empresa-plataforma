@@ -1,0 +1,203 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+// ==========================================
+// ENUMS (DEFINICIÓN DE TIPOS)
+// ==========================================
+
+enum RoleType {
+  SUPER_ADMIN
+  ADMIN_VEHICULOS
+  ASESOR_COMERCIAL
+  CLIENTE
+}
+
+enum ListingStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  RENTED
+  INACTIVE
+}
+
+enum VehicleType {
+  BICICLETA_ELECTRICA
+  BICICLETA_CARGA
+  BICICLETA_URBANA
+  BICICLETA_MONTANA
+}
+
+enum Transmission {
+  ASISTENCIA_PEDAL
+  ACELERADOR
+}
+
+enum FuelType {
+  ELECTRICO
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+enum LeadStatus {
+  NUEVO
+  EN_CONTACTO
+  NEGOCIACION
+  CERRADO
+  DESCARTADO
+}
+
+// ==========================================
+// USUARIOS Y ROLES
+// ==========================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles      UserRole[]
+  vehicles   Vehicle[]
+  leads      Lead[]
+}
+
+model Role {
+  id    String     @id @default(uuid())
+  name  RoleType   @unique
+  users UserRole[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+// ==========================================
+// INVENTARIO: BICICLETAS ELÉCTRICAS
+// ==========================================
+
+model Vehicle {
+  id            String        @id @default(uuid())
+  title         String
+  slug          String        @unique
+  brand         String
+  model         String
+  year          Int
+  price         Float
+  mileage       Int
+  transmission  Transmission
+  fuelType      FuelType
+  vehicleType   VehicleType
+  color         String
+  doors         Int?          @default(4)
+  engine        String?
+  battery       String?
+  rangeKm       Int?
+  motorPower    String?
+  chargeTime    String?
+  maxSpeed      Int?
+  weightCapacity Int?
+  plateEndsWith String?
+  city          String?       @default("General")
+  department    String?       @default("General")
+  description   String
+  features      String[]
+  status        ListingStatus @default(AVAILABLE)
+  published     Boolean       @default(true)
+
+  createdById   String?
+  createdBy     User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  media         Media[]
+  embeddings    DocumentEmbedding[]
+  leads         Lead[]
+}
+
+// ==========================================
+// MULTIMEDIA (IMÁGENES / VIDEOS / DOCS)
+// ==========================================
+
+model Media {
+  id         String    @id @default(uuid())
+  url        String
+  publicId   String
+  type       MediaType @default(IMAGE)
+  order      Int       @default(0)
+  vehicleId  String?
+  vehicle    Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+}
+
+// ==========================================
+// IA / BÚSQUEDA VECTORIAL (PGVECTOR)
+// ==========================================
+
+model DocumentEmbedding {
+  id         String                      @id @default(uuid())
+  content    String
+  embedding  Unsupported("vector(768)")?
+  vehicleId  String?
+  vehicle    Vehicle?                    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime                    @default(now())
+}
+
+// ==========================================
+// CRM: LEADS / PROSPECTOS / CONTACTOS
+// ==========================================
+
+model Lead {
+  id           String     @id @default(uuid())
+  name         String
+  email        String
+  phone        String
+  message      String?
+  status       LeadStatus @default(NUEVO)
+
+  // 🤖 CAMPOS PARA EL BOT DE IA Y AGENTE DE VENTAS
+  aiHandled    Boolean    @default(false)    // Indica si el bot está/estuvo conversando con este lead
+  aiSummary    String?    @db.Text           // Resumen del perfil e interés del cliente generado por la IA
+  needsHuman   Boolean    @default(false)    // Alerta para que un asesor humano tome la conversación
+
+  vehicleId    String?
+  vehicle      Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?      @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// ==========================================
+// CONFIGURACIÓN DEL SISTEMA
+// ==========================================
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}

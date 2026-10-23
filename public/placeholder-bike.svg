@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Bicicleta eléctrica Bikefast</title>
+  <desc id="desc">Ilustración de una bicicleta eléctrica sobre fondo amarillo Bikefast.</desc>
+  <rect width="800" height="520" rx="32" fill="#ffd51a"/>
+  <g fill="none" stroke="#0b0b0b" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="245" cy="350" r="86" stroke-width="12"/>
+    <circle cx="590" cy="350" r="86" stroke-width="12"/>
+    <path d="M245 350 355 190l72 160m-72-160h108l127 160m-127-160-56 160m-82-160h54m-54 0-43-42m164 42 35-55h45" stroke-width="12"/>
+    <path d="M353 190h-48m211 0h-48" stroke-width="14"/>
+  </g>
+  <path d="m418 75-51 103h34l-14 67 61-108h-35z" fill="#0b0b0b"/>
+  <text x="400" y="470" fill="#0b0b0b" font-family="Arial, sans-serif" font-size="24" font-weight="700" text-anchor="middle">BIKEFAST ELECTRICS</text>
+</svg>

@@ -1,0 +1,5 @@
+import BikefastLoading from '@/components/BikefastLoading'
+
+export default function Loading() {
+  return <BikefastLoading label="Cargando bicicletas eléctricas" />
+}
